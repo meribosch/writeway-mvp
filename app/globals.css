@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Serif+Pro:wght@300;400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-purple: #6B46C1;
+  --primary-purple-light: #9F7AEA;
+  --primary-purple-dark: #553C9A;
+  --accent-iridescent: #C4B5FD;
+  --background-light: #F9FAFB;
+  --text-dark: #1A202C;
+  --text-medium: #4A5568;
+  --text-light: #A0AEC0;
+  --white: #FFFFFF;
+  --error: #E53E3E;
+  --success: #38A169;
+}
+
+@layer base {
+  html {
+    font-family: 'Source Serif Pro', serif;
+    color: var(--text-dark);
+    background-color: var(--background-light);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-white border border-purple-600 text-purple-600 hover:bg-purple-50 font-medium py-2 px-4 rounded-md transition-colors;
+  }
+  
+  .btn-tertiary {
+    @apply text-purple-600 hover:text-purple-800 font-medium transition-colors;
+  }
+  
+  .input-field {
+    @apply border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow;
+  }
+  
+  .story-card {
+    @apply card border-l-4 border-purple-500;
+  }
+  
+  .nav-link {
+    @apply text-gray-700 hover:text-purple-600 transition-colors;
+  }
+  
+  .nav-link-active {
+    @apply text-purple-600 font-medium;
+  }
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Editor styles */
+.editor-container {
+  @apply border border-gray-200 rounded-lg min-h-[300px] p-4 bg-white;
+}
+
+.editor-title {
+  @apply text-3xl font-playfair mb-4 outline-none w-full border-b border-gray-100 pb-2 focus:border-purple-200;
+}
+
+.editor-content {
+  @apply font-sourceSerif text-lg outline-none w-full;
+}
+
+/* Prose styling for story content */
+.prose p {
+  margin-bottom: 1rem;
+} 
