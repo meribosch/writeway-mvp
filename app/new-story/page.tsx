@@ -118,7 +118,7 @@ export default function NewStoryPage() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Start writing your story..."
-              className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent min-h-[300px] text-lg font-sourceSerif"
+              className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent min-h-[300px] text-lg font-inter"
             />
           </div>
           

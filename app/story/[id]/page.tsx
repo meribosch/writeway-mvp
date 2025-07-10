@@ -132,7 +132,7 @@ export default function StoryDetail() {
             )}
           </div>
           
-          <div className="prose max-w-none font-sourceSerif text-lg leading-relaxed">
+          <div className="prose max-w-none font-inter text-lg leading-relaxed">
             {story.content.split('\n').map((paragraph, index) => (
               paragraph ? (
                 <p key={index} className="mb-6">

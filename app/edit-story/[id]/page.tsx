@@ -189,7 +189,7 @@ export default function EditStory() {
             placeholder="Write your story here..."
             fullWidth
             required
-            className="font-sourceSerif text-lg"
+            className="font-inter text-lg"
           />
           
           <div className="flex items-center">

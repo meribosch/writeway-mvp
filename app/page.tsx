@@ -8,11 +8,13 @@ import Container from './components/Container';
 import Alert from './components/Alert';
 import Button from './components/Button';
 import Link from 'next/link';
+import { useAuth } from './context/AuthContext';
 
 export default function Home() {
   const [stories, setStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchStories() {
@@ -41,18 +43,29 @@ export default function Home() {
             Welcome to Writeway
           </h1>
           
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto font-sourceSerif">
-            The right way to write and share your stories with the world.
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto font-inter">
+            {user 
+              ? "Start writing to learn and share your stories with the world."
+              : "The right way to write and share your stories with the world."
+            }
           </p>
           
-          <div className="mt-8 flex justify-center gap-4">
-            <Link href="/register">
-              <Button variant="primary" size="lg">Get Started</Button>
-            </Link>
-            <Link href="/login">
-              <Button variant="secondary" size="lg">Sign In</Button>
-            </Link>
-          </div>
+          {!user ? (
+            <div className="mt-8 flex justify-center gap-4">
+              <Link href="/register">
+                <Button variant="primary" size="lg">Get Started</Button>
+              </Link>
+              <Link href="/login">
+                <Button variant="secondary" size="lg">Sign In</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-8 flex justify-center">
+              <Link href="/new-story">
+                <Button variant="primary" size="lg">Write a New Story</Button>
+              </Link>
+            </div>
+          )}
         </div>
         
         {error && (

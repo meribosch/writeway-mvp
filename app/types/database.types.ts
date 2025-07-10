@@ -4,6 +4,9 @@ export type User = {
   password?: string; // Don't expose this in client-side
   role: 'user' | 'admin';
   created_at: string;
+  first_name?: string;
+  last_name?: string;
+  profile_image_url?: string;
 };
 
 export type Story = {
