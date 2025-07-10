@@ -18,36 +18,43 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const { user, isAdmin } = useAuth();
   const router = useRouter();
-
-  // Redirect if not logged in or not admin
-  if (!user) {
-    router.push('/login');
-    return null;
-  }
-
-  if (!isAdmin) {
-    router.push('/');
-    return null;
-  }
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    async function fetchComments() {
-      setIsLoading(true);
-      const { comments, error } = await getAllComments();
-      
-      if (comments) {
-        setComments(comments);
-      }
-      
-      if (error) {
-        setError(error);
-      }
-      
-      setIsLoading(false);
-    }
-
-    fetchComments();
+    setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    // Only run client-side navigation after component mounts
+    if (isMounted) {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      if (!isAdmin) {
+        router.push('/');
+        return;
+      }
+
+      async function fetchComments() {
+        setIsLoading(true);
+        const { comments, error } = await getAllComments();
+        
+        if (comments) {
+          setComments(comments);
+        }
+        
+        if (error) {
+          setError(error);
+        }
+        
+        setIsLoading(false);
+      }
+
+      fetchComments();
+    }
+  }, [isMounted, user, isAdmin, router]);
 
   const handleDeleteComment = async (commentId: string) => {
     if (!confirm('Are you sure you want to delete this comment? This action cannot be undone.')) {
@@ -64,6 +71,18 @@ export default function AdminPage() {
       setError(error);
     }
   };
+
+  // Show loading state until client-side code runs
+  if (!isMounted) {
+    return (
+      <Container>
+        <div className="text-center py-10">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>

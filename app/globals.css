@@ -3,6 +3,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@tailwind variants;
+
+/* Reference Tailwind classes that might be used dynamically */
+@layer utilities {
+  .bg-purple-600 {
+    background-color: #6B46C1;
+  }
+}
 
 :root {
   --primary-purple: #6B46C1;
