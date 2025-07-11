@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { updateUserProfile, uploadProfileImage } from '../utils/auth';
@@ -8,7 +8,7 @@ import Container from '../components/Container';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Alert from '../components/Alert';
-import Image from 'next/image';
+import ImageUploader from '../components/ImageUploader';
 
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
@@ -18,10 +18,10 @@ export default function ProfilePage() {
   const [username, setUsername] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -66,16 +66,15 @@ export default function ProfilePage() {
     setSuccessMessage('Profile updated successfully');
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  const handleImageChange = async (file: File) => {
+    if (!user) return;
     
-    setIsSubmitting(true);
+    setIsUploading(true);
     setError(null);
     
     const { url, error } = await uploadProfileImage(user.id, file);
     
-    setIsSubmitting(false);
+    setIsUploading(false);
     
     if (error) {
       setError(error);
@@ -86,10 +85,6 @@ export default function ProfilePage() {
       setProfileImage(url);
       setSuccessMessage('Profile image updated successfully');
     }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
   };
 
   if (isLoading || !isMounted) {
@@ -129,40 +124,13 @@ export default function ProfilePage() {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="w-full md:w-1/3 flex flex-col items-center">
-              <div className="relative w-40 h-40 rounded-full overflow-hidden bg-gray-100 border-4 border-white shadow-md mb-4">
-                {profileImage ? (
-                  <Image 
-                    src={profileImage}
-                    alt="Profile" 
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="160px"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full bg-purple-50">
-                    <svg className="h-20 w-20 text-purple-300" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageChange}
-                accept="image/*"
-                className="hidden"
+              <ImageUploader
+                currentImage={profileImage}
+                onImageSelect={handleImageChange}
+                isUploading={isUploading}
+                size="md"
+                shape="circle"
               />
-              
-              <Button
-                onClick={triggerFileInput}
-                variant="secondary"
-                disabled={isSubmitting}
-                className="mt-2"
-              >
-                {profileImage ? 'Change Photo' : 'Upload Photo'}
-              </Button>
             </div>
             
             <div className="w-full md:w-2/3">
@@ -214,7 +182,7 @@ export default function ProfilePage() {
                   <Button
                     type="submit"
                     variant="primary"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isUploading}
                     fullWidth
                   >
                     {isSubmitting ? 'Saving...' : 'Save Changes'}

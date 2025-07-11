@@ -175,18 +175,51 @@ export async function updateUserProfile(userId: string, data: {
 // Upload profile image
 export async function uploadProfileImage(userId: string, file: File): Promise<{ url: string | null; error: string | null }> {
   try {
+    // Validate file size (max 2MB)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+      return { url: null, error: `File size exceeds 2MB limit. Please choose a smaller image.` };
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      return { url: null, error: `Invalid file type. Please upload a JPEG, PNG, WebP, or GIF image.` };
+    }
+
     // Generate a unique file name
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
     const filePath = `profile-images/${fileName}`;
 
+    // Check if bucket exists
+    const { data: buckets, error: bucketError } = await supabase
+      .storage
+      .listBuckets();
+    
+    if (bucketError) {
+      console.error('Error checking buckets:', bucketError);
+      return { url: null, error: `Failed to access storage: ${bucketError.message}` };
+    }
+    
+    const bucketExists = buckets.some(bucket => bucket.name === 'user-content');
+    
+    if (!bucketExists) {
+      console.error('Bucket "user-content" does not exist');
+      return { url: null, error: `Storage bucket not found. Please contact support.` };
+    }
+
     // Upload image to Supabase Storage
     const { error: uploadError } = await supabase
       .storage
       .from('user-content')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
     if (uploadError) {
+      console.error('Upload error:', uploadError);
       return { url: null, error: `Upload failed: ${uploadError.message}` };
     }
 
@@ -205,6 +238,7 @@ export async function uploadProfileImage(userId: string, file: File): Promise<{ 
       .eq('id', userId);
 
     if (updateError) {
+      console.error('Update error:', updateError);
       return { url: null, error: `Failed to update profile: ${updateError.message}` };
     }
 
@@ -217,6 +251,7 @@ export async function uploadProfileImage(userId: string, file: File): Promise<{ 
 
     return { url: publicUrl, error: null };
   } catch (error) {
+    console.error('Unexpected error during upload:', error);
     return { url: null, error: `Upload failed: ${error instanceof Error ? error.message : String(error)}` };
   }
 } 
