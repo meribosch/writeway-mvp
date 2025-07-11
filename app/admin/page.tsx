@@ -37,7 +37,8 @@ export default function AdminPage() {
         return;
       }
 
-      async function fetchComments() {
+      // Convertido a expresión de función para evitar el error de ES5 en modo estricto
+      const fetchComments = async () => {
         setIsLoading(true);
         const { comments, error } = await getAllComments();
         
@@ -50,7 +51,7 @@ export default function AdminPage() {
         }
         
         setIsLoading(false);
-      }
+      };
 
       fetchComments();
     }
