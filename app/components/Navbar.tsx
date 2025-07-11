@@ -4,23 +4,31 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Get display name (first name + last name, or username if not available)
+  const displayName = user ? 
+    (user.first_name || user.last_name) ? 
+      `${user.first_name || ''} ${user.last_name || ''}`.trim() : 
+      user.username : 
+    '';
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="bg-white shadow-purple">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <span className="text-2xl font-playfair font-bold text-purple-700">Writeway</span>
+            <span className="text-2xl font-inter font-bold bg-gradient-purple text-transparent bg-clip-text">Writeway</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -41,9 +49,24 @@ export default function Navbar() {
                 </Link>
                 <Link 
                   href="/profile" 
-                  className={`text-gray-600 hover:text-purple-700 font-medium ${pathname === '/profile' ? 'text-purple-700' : ''}`}
+                  className={`flex items-center text-gray-600 hover:text-purple-700 font-medium ${pathname === '/profile' ? 'text-purple-700' : ''}`}
                 >
-                  Profile
+                  {user.profile_image_url ? (
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden mr-2">
+                      <Image 
+                        src={user.profile_image_url}
+                        alt="Profile" 
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="32px"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center mr-2">
+                      {displayName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  {displayName}
                 </Link>
                 <button 
                   onClick={logout} 
@@ -62,7 +85,7 @@ export default function Navbar() {
                 </Link>
                 <Link 
                   href="/register" 
-                  className="px-4 py-2 rounded-md bg-purple-600 text-white font-medium hover:bg-purple-700 transition-colors"
+                  className="btn-modern px-4 py-2"
                 >
                   Sign Up
                 </Link>
@@ -93,6 +116,27 @@ export default function Navbar() {
             <div className="flex flex-col space-y-3">
               {user ? (
                 <>
+                  {user.profile_image_url ? (
+                    <div className="flex items-center mb-2">
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden mr-2">
+                        <Image 
+                          src={user.profile_image_url}
+                          alt="Profile" 
+                          fill
+                          style={{ objectFit: 'cover' }}
+                          sizes="32px"
+                        />
+                      </div>
+                      <span className="font-medium text-gray-800">{displayName}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center mr-2">
+                        {displayName.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="font-medium text-gray-800">{displayName}</span>
+                    </div>
+                  )}
                   <Link 
                     href="/my-stories" 
                     className={`text-gray-600 hover:text-purple-700 font-medium ${pathname === '/my-stories' ? 'text-purple-700' : ''}`}
@@ -135,7 +179,7 @@ export default function Navbar() {
                   </Link>
                   <Link 
                     href="/register" 
-                    className="px-4 py-2 rounded-md bg-purple-600 text-white font-medium hover:bg-purple-700 transition-colors w-fit"
+                    className="btn-modern px-4 py-2 w-fit"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign Up

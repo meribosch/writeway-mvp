@@ -39,7 +39,7 @@ export default function Home() {
     <Container>
       <div className="py-10 animate-fadeIn">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold text-purple-700 mb-4">
+          <h1 className="text-4xl md:text-5xl font-inter font-bold text-purple-700 mb-4">
             Welcome to Writeway
           </h1>
           
@@ -83,7 +83,7 @@ export default function Home() {
           </div>
         ) : stories.length > 0 ? (
           <div>
-            <h2 className="text-2xl font-playfair font-bold mb-6 text-gray-800 border-b border-gray-200 pb-2">
+            <h2 className="text-2xl font-inter font-bold mb-6 text-gray-800 border-b border-gray-200 pb-2">
               Latest Stories
             </h2>
             <div className="space-y-6">

@@ -106,7 +106,7 @@ export default function ProfilePage() {
   return (
     <Container size="sm">
       <div className="py-8 animate-fadeIn">
-        <h1 className="text-3xl font-playfair font-bold mb-8 text-gray-800">Your Profile</h1>
+        <h1 className="text-3xl font-inter font-bold mb-8 text-gray-800">Your Profile</h1>
         
         {error && (
           <Alert 

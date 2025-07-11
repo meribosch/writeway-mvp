@@ -1,11 +1,13 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Asegurarse de que Tailwind se procese correctamente
-  webpack: (config: any) => {
-    return config;
+  // Eliminar la configuración de webpack y agregar turbopack
+  turbopack: {
+    // Configuración básica de Turbopack
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
   },
 };
 

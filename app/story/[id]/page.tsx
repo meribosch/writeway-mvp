@@ -119,7 +119,7 @@ export default function StoryDetail() {
             </div>
           )}
           
-          <h1 className="text-3xl md:text-4xl font-playfair font-bold mb-3 text-gray-800">{story.title}</h1>
+          <h1 className="text-3xl md:text-4xl font-inter font-bold mb-3 text-gray-800">{story.title}</h1>
           
           <div className="flex items-center text-gray-600 mb-8">
             <span className="font-medium">

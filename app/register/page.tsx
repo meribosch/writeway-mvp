@@ -4,10 +4,6 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Container from '../components/Container';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import Alert from '../components/Alert';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -22,100 +18,108 @@ export default function Register() {
     e.preventDefault();
     setError(null);
     
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    
-    // Validate password length
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const { success, error } = await register(username, password);
-    
-    if (success) {
-      router.push('/');
-    } else {
-      setError(error || 'An error occurred during registration');
+    try {
+      // Validate passwords match
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
+      
+      // Validate password length
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+      }
+      
+      setIsLoading(true);
+      console.log('Submitting registration form for:', username);
+      
+      const { success, error } = await register(username, password);
+      console.log('Registration result:', { success, error });
+      
+      if (success) {
+        router.push('/');
+      } else {
+        setError(error || 'An error occurred during registration');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error('Error in registration form submission:', err);
+      setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
   };
 
   return (
-    <Container size="sm">
-      <div className="bg-white rounded-lg shadow-md p-8 my-10 animate-fadeIn">
-        <h1 className="text-3xl font-playfair font-bold mb-6 text-center text-gray-800">
-          Create an Account
-        </h1>
-        
-        {error && (
-          <Alert 
-            type="error" 
-            message={error} 
-            onClose={() => setError(null)}
-            className="mb-6"
-          />
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <Input
+    <div className="max-w-md mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Create an Account</h1>
+      
+      {error && (
+        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+            Username
+          </label>
+          <input
             id="username"
             type="text"
-            label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            fullWidth
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          
-          <Input
+        </div>
+        
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            Password
+          </label>
+          <input
             id="password"
             type="password"
-            label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            fullWidth
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
             minLength={6}
           />
-          
-          <Input
+        </div>
+        
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            Confirm Password
+          </label>
+          <input
             id="confirmPassword"
             type="password"
-            label="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            fullWidth
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
             minLength={6}
           />
-          
-          <div className="pt-2">
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              isLoading={isLoading}
-            >
-              Create Account
-            </Button>
-          </div>
-        </form>
-        
-        <div className="mt-8 text-center">
-          <p className="text-gray-600">
-            Already have an account?{' '}
-            <Link href="/login" className="text-purple-600 hover:text-purple-800 font-medium">
-              Sign in here
-            </Link>
-          </p>
         </div>
-      </div>
-    </Container>
+        
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Registering...' : 'Register'}
+        </button>
+      </form>
+      
+      <p className="mt-4 text-center text-gray-600">
+        Already have an account?{' '}
+        <Link href="/login" className="text-blue-600 hover:text-blue-800">
+          Login here
+        </Link>
+      </p>
+    </div>
   );
 } 

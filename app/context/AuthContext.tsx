@@ -27,25 +27,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (username: string, password: string) => {
-    const { user, error } = await loginUser(username, password);
-    
-    if (user) {
-      setUser(user);
-      return { success: true, error: null };
+    try {
+      const { user, error } = await loginUser(username, password);
+      
+      if (user) {
+        setUser(user);
+        return { success: true, error: null };
+      }
+      
+      return { success: false, error: error || 'Login failed' };
+    } catch (err) {
+      console.error('Login error:', err);
+      return { success: false, error: 'An unexpected error occurred during login' };
     }
-    
-    return { success: false, error: error || 'Login failed' };
   };
 
   const register = async (username: string, password: string) => {
-    const { user, error } = await registerUser(username, password);
-    
-    if (user) {
-      setUser(user);
-      return { success: true, error: null };
+    try {
+      console.log('Register function called with username:', username);
+      const { user, error } = await registerUser(username, password);
+      
+      if (user) {
+        setUser(user);
+        return { success: true, error: null };
+      }
+      
+      return { success: false, error: error || 'Registration failed' };
+    } catch (err) {
+      console.error('Registration error:', err);
+      return { success: false, error: 'An unexpected error occurred during registration' };
     }
-    
-    return { success: false, error: error || 'Registration failed' };
   };
 
   const logout = () => {

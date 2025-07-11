@@ -81,8 +81,8 @@ export default function CommentSection({ storyId }: CommentSectionProps) {
   };
 
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-playfair font-bold mb-6 text-gray-800 border-b border-gray-100 pb-2 flex items-center">
+    <div className="mt-8 card-modern p-6">
+      <h2 className="text-2xl font-inter font-bold mb-6 text-gray-800 border-b border-purple-100 pb-2 flex items-center">
         <svg className="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
         </svg>
@@ -139,7 +139,7 @@ export default function CommentSection({ storyId }: CommentSectionProps) {
       ) : comments.length > 0 ? (
         <div className="space-y-6">
           {comments.map((comment) => (
-            <div key={comment.id} className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 animate-fadeIn">
+            <div key={comment.id} className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-l-purple-300 animate-fadeIn">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-gray-800">{comment.author_name}</p>
@@ -163,8 +163,8 @@ export default function CommentSection({ storyId }: CommentSectionProps) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="text-center py-12 bg-purple-50 rounded-lg border border-purple-100">
+          <svg className="mx-auto h-12 w-12 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
           </svg>
           <p className="mt-4 text-lg font-medium text-gray-700">No comments yet</p>

@@ -5,6 +5,8 @@ import { User } from '../types/database.types';
 // Register a new user
 export async function registerUser(username: string, password: string): Promise<{ user: User | null; error: string | null }> {
   try {
+    console.log('Starting registration for:', username);
+    
     // Check if username already exists
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
@@ -12,18 +14,25 @@ export async function registerUser(username: string, password: string): Promise<
       .eq('username', username)
       .single();
 
-    if (checkError && checkError.code !== 'PGRST116') {
-      return { user: null, error: 'Error checking username' };
+    if (checkError) {
+      console.error('Error checking username:', checkError);
+      // PGRST116 is the error code for "no rows returned" which is what we want
+      if (checkError.code !== 'PGRST116') {
+        return { user: null, error: `Error checking username: ${checkError.message}` };
+      }
     }
 
     if (existingUser) {
+      console.log('Username already exists:', existingUser);
       return { user: null, error: 'Username already exists' };
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('Password hashed successfully');
 
     // Insert new user
+    console.log('Attempting to insert new user');
     const { data, error } = await supabase
       .from('users')
       .insert([
@@ -33,18 +42,23 @@ export async function registerUser(username: string, password: string): Promise<
       .single();
 
     if (error) {
-      return { user: null, error: error.message };
+      console.error('Error inserting user:', error);
+      return { user: null, error: `Registration failed: ${error.message}` };
     }
 
+    console.log('User registered successfully:', data);
     return { user: data as User, error: null };
   } catch (error) {
-    return { user: null, error: 'Registration failed' };
+    console.error('Unexpected error during registration:', error);
+    return { user: null, error: `Registration failed: ${error instanceof Error ? error.message : String(error)}` };
   }
 }
 
 // Login a user
 export async function loginUser(username: string, password: string): Promise<{ user: User | null; error: string | null }> {
   try {
+    console.log('Attempting login for:', username);
+    
     // Get user by username
     const { data: user, error } = await supabase
       .from('users')
@@ -52,13 +66,20 @@ export async function loginUser(username: string, password: string): Promise<{ u
       .eq('username', username)
       .single();
 
-    if (error || !user) {
+    if (error) {
+      console.error('Error fetching user:', error);
+      return { user: null, error: 'Invalid username or password' };
+    }
+
+    if (!user) {
+      console.log('User not found');
       return { user: null, error: 'Invalid username or password' };
     }
 
     // Compare password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
+      console.log('Invalid password');
       return { user: null, error: 'Invalid username or password' };
     }
 
@@ -67,9 +88,11 @@ export async function loginUser(username: string, password: string): Promise<{ u
     
     // Store user in local storage
     localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+    console.log('Login successful');
     
     return { user: userWithoutPassword as User, error: null };
   } catch (error) {
+    console.error('Unexpected error during login:', error);
     return { user: null, error: 'Login failed' };
   }
 }
@@ -77,6 +100,7 @@ export async function loginUser(username: string, password: string): Promise<{ u
 // Logout user
 export function logoutUser(): void {
   localStorage.removeItem('user');
+  console.log('User logged out');
 }
 
 // Get current user from localStorage
@@ -93,32 +117,29 @@ export function getCurrentUser(): User | null {
   try {
     return JSON.parse(userStr) as User;
   } catch (error) {
+    console.error('Error parsing user from localStorage:', error);
     return null;
   }
-}
+} 
 
 // Update user profile
-export async function updateUserProfile(
-  userId: string,
-  profileData: {
-    first_name?: string;
-    last_name?: string;
-    username?: string;
-    profile_image_url?: string;
-  }
-): Promise<{ user: User | null; error: string | null }> {
+export async function updateUserProfile(userId: string, data: {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+}): Promise<{ user: User | null; error: string | null }> {
   try {
     // If username is being updated, check if it already exists
-    if (profileData.username) {
+    if (data.username) {
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('username')
-        .eq('username', profileData.username)
+        .eq('username', data.username)
         .neq('id', userId)
         .single();
 
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('Error checking username:', checkError);
+        return { user: null, error: `Error checking username: ${checkError.message}` };
       }
 
       if (existingUser) {
@@ -127,72 +148,75 @@ export async function updateUserProfile(
     }
 
     // Update user profile
-    const { data, error } = await supabase
+    const { data: updatedUser, error } = await supabase
       .from('users')
-      .update(profileData)
+      .update(data)
       .eq('id', userId)
       .select()
       .single();
 
     if (error) {
-      console.error('Error updating profile:', error);
-      return { user: null, error: error.message };
+      return { user: null, error: `Update failed: ${error.message}` };
     }
 
-    if (!data) {
-      return { user: null, error: 'User not found' };
-    }
-
-    // Don't return the password
-    const { password: _, ...userWithoutPassword } = data;
-    
     // Update user in local storage
-    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-    
-    return { user: userWithoutPassword as User, error: null };
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const updatedUserData = { ...currentUser, ...updatedUser };
+      localStorage.setItem('user', JSON.stringify(updatedUserData));
+    }
+
+    return { user: updatedUser as User, error: null };
   } catch (error) {
-    console.error('Update profile error:', error);
-    return { user: null, error: 'Failed to update profile' };
+    return { user: null, error: `Update failed: ${error instanceof Error ? error.message : String(error)}` };
   }
 }
 
 // Upload profile image
-export async function uploadProfileImage(
-  userId: string,
-  file: File
-): Promise<{ url: string | null; error: string | null }> {
+export async function uploadProfileImage(userId: string, file: File): Promise<{ url: string | null; error: string | null }> {
   try {
+    // Generate a unique file name
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
     const filePath = `profile-images/${fileName}`;
 
     // Upload image to Supabase Storage
-    const { data, error } = await supabase.storage
+    const { error: uploadError } = await supabase
+      .storage
       .from('user-content')
       .upload(filePath, file);
 
-    if (error) {
-      console.error('Error uploading image:', error);
-      return { url: null, error: error.message };
+    if (uploadError) {
+      return { url: null, error: `Upload failed: ${uploadError.message}` };
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data } = supabase
+      .storage
       .from('user-content')
       .getPublicUrl(filePath);
 
+    const publicUrl = data.publicUrl;
+
     // Update user profile with new image URL
-    const { user, error: updateError } = await updateUserProfile(userId, {
-      profile_image_url: publicUrl
-    });
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ profile_image_url: publicUrl })
+      .eq('id', userId);
 
     if (updateError) {
-      return { url: null, error: updateError };
+      return { url: null, error: `Failed to update profile: ${updateError.message}` };
+    }
+
+    // Update user in local storage
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const updatedUserData = { ...currentUser, profile_image_url: publicUrl };
+      localStorage.setItem('user', JSON.stringify(updatedUserData));
     }
 
     return { url: publicUrl, error: null };
   } catch (error) {
-    console.error('Upload image error:', error);
-    return { url: null, error: 'Failed to upload image' };
+    return { url: null, error: `Upload failed: ${error instanceof Error ? error.message : String(error)}` };
   }
 } 
