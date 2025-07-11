@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [bucketError, setBucketError] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -71,13 +72,20 @@ export default function ProfilePage() {
     
     setIsUploading(true);
     setError(null);
+    setBucketError(false);
     
     const { url, error } = await uploadProfileImage(user.id, file);
     
     setIsUploading(false);
     
     if (error) {
-      setError(error);
+      // Check if it's a bucket error
+      if (error.includes('bucket not found') || error.includes('Storage bucket not found')) {
+        setBucketError(true);
+        setError('Image upload is not available at the moment. Profile information will still be saved.');
+      } else {
+        setError(error);
+      }
       return;
     }
     
@@ -124,13 +132,24 @@ export default function ProfilePage() {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="w-full md:w-1/3 flex flex-col items-center">
-              <ImageUploader
-                currentImage={profileImage}
-                onImageSelect={handleImageChange}
-                isUploading={isUploading}
-                size="md"
-                shape="circle"
-              />
+              {bucketError ? (
+                <div className="text-center mb-6">
+                  <div className="w-40 h-40 rounded-full bg-gray-100 border-4 border-white shadow-md mb-4 flex items-center justify-center">
+                    <svg className="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-gray-600">Image upload is temporarily unavailable.</p>
+                </div>
+              ) : (
+                <ImageUploader
+                  currentImage={profileImage}
+                  onImageSelect={handleImageChange}
+                  isUploading={isUploading}
+                  size="md"
+                  shape="circle"
+                />
+              )}
             </div>
             
             <div className="w-full md:w-2/3">
