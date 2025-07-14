@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Image from 'next/image';
 import Button from './Button';
 
 interface ImageUploaderProps {
@@ -63,12 +62,9 @@ export default function ImageUploader({
         )}
         
         {displayImage ? (
-          <Image 
-            src={displayImage}
-            alt="Profile" 
-            fill
-            style={{ objectFit: 'cover' }}
-            sizes={size === 'sm' ? '96px' : size === 'md' ? '160px' : '240px'}
+          <div 
+            className="w-full h-full bg-center bg-cover"
+            style={{ backgroundImage: `url(${displayImage})` }}
           />
         ) : (
           <div className="flex items-center justify-center h-full bg-purple-50">
@@ -86,7 +82,7 @@ export default function ImageUploader({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
       />
       

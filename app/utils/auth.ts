@@ -175,66 +175,25 @@ export async function updateUserProfile(userId: string, data: {
 // Upload profile image
 export async function uploadProfileImage(userId: string, file: File): Promise<{ url: string | null; error: string | null }> {
   try {
-    // Validate file size (max 2MB)
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    // Validate file size (max 500KB para Base64)
+    const maxSize = 500 * 1024; // 500KB
     if (file.size > maxSize) {
-      return { url: null, error: `File size exceeds 2MB limit. Please choose a smaller image.` };
+      return { url: null, error: `File size exceeds 500KB limit. Please choose a smaller image.` };
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      return { url: null, error: `Invalid file type. Please upload a JPEG, PNG, WebP, or GIF image.` };
+      return { url: null, error: `Invalid file type. Please upload a JPEG, PNG, or WebP image.` };
     }
 
-    // Generate a unique file name
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}-${Date.now()}.${fileExt}`;
-    const filePath = `profile-images/${fileName}`;
-
-    // Check if bucket exists
-    const { data: buckets, error: bucketError } = await supabase
-      .storage
-      .listBuckets();
+    // Convert file to Base64
+    const base64 = await fileToBase64(file);
     
-    if (bucketError) {
-      console.error('Error checking buckets:', bucketError);
-      return { url: null, error: `Failed to access storage: ${bucketError.message}` };
-    }
-    
-    const bucketExists = buckets.some(bucket => bucket.name === 'user-content');
-    
-    if (!bucketExists) {
-      console.error('Bucket "user-content" does not exist');
-      return { url: null, error: `Storage bucket not found. Please contact support.` };
-    }
-
-    // Upload image to Supabase Storage
-    const { error: uploadError } = await supabase
-      .storage
-      .from('user-content')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return { url: null, error: `Upload failed: ${uploadError.message}` };
-    }
-
-    // Get public URL
-    const { data } = supabase
-      .storage
-      .from('user-content')
-      .getPublicUrl(filePath);
-
-    const publicUrl = data.publicUrl;
-
-    // Update user profile with new image URL
+    // Update user profile with base64 image
     const { error: updateError } = await supabase
       .from('users')
-      .update({ profile_image_url: publicUrl })
+      .update({ profile_image_url: base64 })
       .eq('id', userId);
 
     if (updateError) {
@@ -245,13 +204,23 @@ export async function uploadProfileImage(userId: string, file: File): Promise<{ 
     // Update user in local storage
     const currentUser = getCurrentUser();
     if (currentUser) {
-      const updatedUserData = { ...currentUser, profile_image_url: publicUrl };
+      const updatedUserData = { ...currentUser, profile_image_url: base64 };
       localStorage.setItem('user', JSON.stringify(updatedUserData));
     }
 
-    return { url: publicUrl, error: null };
+    return { url: base64, error: null };
   } catch (error) {
     console.error('Unexpected error during upload:', error);
     return { url: null, error: `Upload failed: ${error instanceof Error ? error.message : String(error)}` };
   }
+}
+
+// Helper function to convert File to Base64
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
 } 
