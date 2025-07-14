@@ -11,6 +11,7 @@ type AuthContextType = {
   register: (username: string, password: string) => Promise<{ success: boolean; error: string | null }>;
   logout: () => void;
   isAdmin: boolean;
+  refreshUser: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,11 +64,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logoutUser();
     setUser(null);
   };
+  
+  const refreshUser = () => {
+    console.log('Refreshing user data');
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  };
 
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, isAdmin, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

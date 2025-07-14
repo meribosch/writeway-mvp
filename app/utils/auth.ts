@@ -129,6 +129,9 @@ export async function updateUserProfile(userId: string, data: {
   username?: string;
 }): Promise<{ user: User | null; error: string | null }> {
   try {
+    console.log('Updating profile for user ID:', userId);
+    console.log('Update data:', data);
+    
     // If username is being updated, check if it already exists
     if (data.username) {
       const { data: existingUser, error: checkError } = await supabase
@@ -136,27 +139,43 @@ export async function updateUserProfile(userId: string, data: {
         .select('username')
         .eq('username', data.username)
         .neq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (checkError && checkError.code !== 'PGRST116') {
+      if (checkError) {
+        console.error('Error checking username:', checkError);
         return { user: null, error: `Error checking username: ${checkError.message}` };
       }
 
       if (existingUser) {
+        console.log('Username already exists:', existingUser);
         return { user: null, error: 'Username already exists' };
       }
     }
 
+    // Prepare update data with explicit fields
+    const updateData: Record<string, any> = {};
+    if (data.username !== undefined) updateData.username = data.username;
+    if (data.first_name !== undefined) updateData.first_name = data.first_name;
+    if (data.last_name !== undefined) updateData.last_name = data.last_name;
+
+    console.log('Final update data:', updateData);
+
     // Update user profile
     const { data: updatedUser, error } = await supabase
       .from('users')
-      .update(data)
+      .update(updateData)
       .eq('id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
+      console.error('Update error:', error);
       return { user: null, error: `Update failed: ${error.message}` };
+    }
+
+    if (!updatedUser) {
+      console.error('No user found with ID:', userId);
+      return { user: null, error: 'User not found' };
     }
 
     // Update user in local storage
@@ -166,8 +185,10 @@ export async function updateUserProfile(userId: string, data: {
       localStorage.setItem('user', JSON.stringify(updatedUserData));
     }
 
+    console.log('Profile updated successfully:', updatedUser);
     return { user: updatedUser as User, error: null };
   } catch (error) {
+    console.error('Unexpected error during profile update:', error);
     return { user: null, error: `Update failed: ${error instanceof Error ? error.message : String(error)}` };
   }
 }
@@ -175,20 +196,25 @@ export async function updateUserProfile(userId: string, data: {
 // Upload profile image
 export async function uploadProfileImage(userId: string, file: File): Promise<{ url: string | null; error: string | null }> {
   try {
+    console.log('Uploading profile image for user ID:', userId);
+    
     // Validate file size (max 500KB para Base64)
     const maxSize = 500 * 1024; // 500KB
     if (file.size > maxSize) {
+      console.log('File size exceeds limit:', file.size);
       return { url: null, error: `File size exceeds 500KB limit. Please choose a smaller image.` };
     }
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
+      console.log('Invalid file type:', file.type);
       return { url: null, error: `Invalid file type. Please upload a JPEG, PNG, or WebP image.` };
     }
 
     // Convert file to Base64
     const base64 = await fileToBase64(file);
+    console.log('File converted to Base64 successfully');
     
     // Update user profile with base64 image
     const { error: updateError } = await supabase
@@ -206,8 +232,10 @@ export async function uploadProfileImage(userId: string, file: File): Promise<{ 
     if (currentUser) {
       const updatedUserData = { ...currentUser, profile_image_url: base64 };
       localStorage.setItem('user', JSON.stringify(updatedUserData));
+      console.log('User local storage updated with new profile image');
     }
 
+    console.log('Profile image updated successfully');
     return { url: base64, error: null };
   } catch (error) {
     console.error('Unexpected error during upload:', error);

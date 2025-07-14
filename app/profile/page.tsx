@@ -11,7 +11,7 @@ import Alert from '../components/Alert';
 import ImageUploader from '../components/ImageUploader';
 
 export default function ProfilePage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, refreshUser } = useAuth();
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -35,6 +35,7 @@ export default function ProfilePage() {
         return;
       }
 
+      console.log('Loading user data:', user);
       setUsername(user.username || '');
       setFirstName(user.first_name || '');
       setLastName(user.last_name || '');
@@ -51,20 +52,36 @@ export default function ProfilePage() {
     setError(null);
     setSuccessMessage(null);
     
+    console.log('Submitting profile update:', {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      username: username.trim()
+    });
+    
     const { user: updatedUser, error } = await updateUserProfile(user.id, {
-      first_name: firstName.trim() || undefined,
-      last_name: lastName.trim() || undefined,
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
       username: username.trim() !== user.username ? username.trim() : undefined,
     });
     
     setIsSubmitting(false);
     
     if (error) {
+      console.error('Profile update error:', error);
       setError(error);
       return;
     }
     
-    setSuccessMessage('Profile updated successfully');
+    if (updatedUser) {
+      console.log('Profile updated successfully:', updatedUser);
+      // Refresh user context
+      if (typeof refreshUser === 'function') {
+        refreshUser();
+      }
+      setSuccessMessage('Profile updated successfully');
+    } else {
+      setError('Failed to update profile. Please try again.');
+    }
   };
 
   const handleImageChange = async (file: File) => {
@@ -74,11 +91,13 @@ export default function ProfilePage() {
     setError(null);
     setBucketError(false);
     
+    console.log('Uploading image:', file.name, file.type, file.size);
     const { url, error } = await uploadProfileImage(user.id, file);
     
     setIsUploading(false);
     
     if (error) {
+      console.error('Image upload error:', error);
       // Check if it's a bucket error
       if (error.includes('bucket not found') || error.includes('Storage bucket not found')) {
         setBucketError(true);
@@ -90,7 +109,12 @@ export default function ProfilePage() {
     }
     
     if (url) {
+      console.log('Image uploaded successfully');
       setProfileImage(url);
+      // Refresh user context
+      if (typeof refreshUser === 'function') {
+        refreshUser();
+      }
       setSuccessMessage('Profile image updated successfully');
     }
   };
