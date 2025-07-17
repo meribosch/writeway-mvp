@@ -16,6 +16,13 @@ export default function StoryCard({ story, showActions = false, onDelete }: Stor
   const [commentCount, setCommentCount] = useState(0);
   const formattedDate = formatDistanceToNow(new Date(story.created_at), { addSuffix: true });
   
+  // Get author display name
+  const authorDisplayName = story.author ? (
+    story.author.first_name && story.author.last_name 
+      ? `${story.author.first_name} ${story.author.last_name}`
+      : story.author.username
+  ) : 'Anonymous';
+  
   // Truncate content for preview
   const previewContent = story.content.length > 150 
     ? `${story.content.substring(0, 150)}...` 
@@ -46,7 +53,7 @@ export default function StoryCard({ story, showActions = false, onDelete }: Stor
       </div>
       
       <p className="text-gray-500 text-sm mt-1 font-medium">
-        Posted {formattedDate}
+        By <span className="text-purple-700">{authorDisplayName}</span> • Posted {formattedDate}
       </p>
       
       <p className="mt-3 text-gray-700 font-inter">

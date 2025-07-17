@@ -53,6 +53,15 @@ export default function StoryDetail() {
     fetchStory();
   }, [id, user]);
 
+  // Get author display name
+  const getAuthorDisplayName = () => {
+    if (!story || !story.author) return 'Anonymous';
+    
+    return story.author.first_name && story.author.last_name 
+      ? `${story.author.first_name} ${story.author.last_name}`
+      : story.author.username;
+  };
+
   if (isLoading) {
     return (
       <Container size="md">
@@ -123,7 +132,7 @@ export default function StoryDetail() {
           
           <div className="flex items-center text-gray-600 mb-8">
             <span className="font-medium">
-              Posted {formatDistanceToNow(new Date(story.created_at), { addSuffix: true })}
+              By <span className="text-purple-700">{getAuthorDisplayName()}</span> • Posted {formatDistanceToNow(new Date(story.created_at), { addSuffix: true })}
             </span>
             {!story.is_public && (
               <span className="ml-3">

@@ -17,6 +17,12 @@ export type Story = {
   author_id: string;
   created_at: string;
   updated_at: string;
+  author?: {
+    id: string;
+    username: string;
+    first_name?: string;
+    last_name?: string;
+  };
 };
 
 export type Comment = {

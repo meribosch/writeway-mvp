@@ -6,7 +6,15 @@ export async function getPublicStories(): Promise<{ stories: Story[] | null; err
   try {
     const { data, error } = await supabase
       .from('stories')
-      .select('*')
+      .select(`
+        *,
+        author:author_id (
+          id,
+          username,
+          first_name,
+          last_name
+        )
+      `)
       .eq('is_public', true)
       .order('created_at', { ascending: false });
 
@@ -25,7 +33,15 @@ export async function getStoriesByAuthor(authorId: string): Promise<{ stories: S
   try {
     const { data, error } = await supabase
       .from('stories')
-      .select('*')
+      .select(`
+        *,
+        author:author_id (
+          id,
+          username,
+          first_name,
+          last_name
+        )
+      `)
       .eq('author_id', authorId)
       .order('created_at', { ascending: false });
 
@@ -44,7 +60,15 @@ export async function getStoryById(storyId: string): Promise<{ story: Story | nu
   try {
     const { data, error } = await supabase
       .from('stories')
-      .select('*')
+      .select(`
+        *,
+        author:author_id (
+          id,
+          username,
+          first_name,
+          last_name
+        )
+      `)
       .eq('id', storyId)
       .single();
 
@@ -77,7 +101,15 @@ export async function createStory(
           updated_at: new Date().toISOString(),
         }
       ])
-      .select()
+      .select(`
+        *,
+        author:author_id (
+          id,
+          username,
+          first_name,
+          last_name
+        )
+      `)
       .single();
 
     if (error) {
@@ -107,7 +139,15 @@ export async function updateStory(
         updated_at: new Date().toISOString(),
       })
       .eq('id', storyId)
-      .select()
+      .select(`
+        *,
+        author:author_id (
+          id,
+          username,
+          first_name,
+          last_name
+        )
+      `)
       .single();
 
     if (error) {
