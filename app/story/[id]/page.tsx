@@ -6,6 +6,7 @@ import { getStoryById } from '../../utils/stories';
 import { Story } from '../../types/database.types';
 import { useAuth } from '../../context/AuthContext';
 import CommentSection from '../../components/CommentSection';
+import AIAssistant from '../../components/AIAssistant';
 import { formatDistanceToNow } from 'date-fns';
 import Container from '../../components/Container';
 import Button from '../../components/Button';
@@ -20,6 +21,7 @@ export default function StoryDetail() {
   const [story, setStory] = useState<Story | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   useEffect(() => {
     async function fetchStory() {
@@ -61,6 +63,9 @@ export default function StoryDetail() {
       ? `${story.author.first_name} ${story.author.last_name}`
       : story.author.username;
   };
+
+  // Determinar si el usuario actual es el autor
+  const isAuthor = user && story && user.id === story.author_id;
 
   if (isLoading) {
     return (
@@ -120,11 +125,20 @@ export default function StoryDetail() {
     <Container size="md">
       <div className="animate-fadeIn">
         <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          {user && user.id === story.author_id && (
-            <div className="flex justify-end mb-4">
+          {isAuthor && (
+            <div className="flex justify-end mb-4 gap-2">
               <Link href={`/edit-story/${story.id}`} className="btn-secondary text-sm">
                 Edit Story
               </Link>
+              
+              {story.is_public && (
+                <Button
+                  onClick={() => setShowAIAssistant(!showAIAssistant)}
+                  variant="secondary"
+                >
+                  {showAIAssistant ? 'Hide AI Assistant' : 'Show AI Assistant'}
+                </Button>
+              )}
             </div>
           )}
           
@@ -151,6 +165,11 @@ export default function StoryDetail() {
             ))}
           </div>
         </div>
+        
+        {/* AI Assistant - solo visible para el autor y si la historia es pública */}
+        {isAuthor && story.is_public && showAIAssistant && (
+          <AIAssistant story={story} />
+        )}
         
         {story.is_public && (
           <CommentSection storyId={story.id} />
