@@ -10,6 +10,8 @@ import Input from './Input';
 import AIMessageDisplay from './AIMessageDisplay';
 import Alert from './Alert';
 
+// Nota: Asegúrate de que la variable de entorno OPENAI_API_KEY esté configurada
+// tanto en el archivo .env.local (desarrollo) como en las variables de entorno de Vercel (producción)
 interface AIAssistantProps {
   story: Story;
 }
