@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { getStoryById } from '../../utils/stories';
 import { Story } from '../../types/database.types';
 import { useAuth } from '../../context/AuthContext';
+import { useAIAssistant } from '../../context/AIAssistantContext';
 import CommentSection from '../../components/CommentSection';
-import AIAssistant from '../../components/AIAssistant';
 import { formatDistanceToNow } from 'date-fns';
 import Container from '../../components/Container';
 import Button from '../../components/Button';
@@ -18,6 +18,7 @@ export default function StoryDetail() {
   const { id } = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { openAIAssistant, closeAIAssistant } = useAIAssistant();
   const [story, setStory] = useState<Story | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +67,18 @@ export default function StoryDetail() {
 
   // Determinar si el usuario actual es el autor
   const isAuthor = user && story && user.id === story.author_id;
+
+  // Manejar el botón del asistente
+  const handleAIAssistantToggle = () => {
+    if (story) {
+      if (showAIAssistant) {
+        closeAIAssistant();
+      } else {
+        openAIAssistant(story);
+      }
+      setShowAIAssistant(!showAIAssistant);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -133,7 +146,7 @@ export default function StoryDetail() {
               
               {story.is_public && (
                 <Button
-                  onClick={() => setShowAIAssistant(!showAIAssistant)}
+                  onClick={handleAIAssistantToggle}
                   variant="secondary"
                 >
                   {showAIAssistant ? 'Hide AI Assistant' : 'Show AI Assistant'}
@@ -165,11 +178,6 @@ export default function StoryDetail() {
             ))}
           </div>
         </div>
-        
-        {/* AI Assistant - solo visible para el autor y si la historia es pública */}
-        {isAuthor && story.is_public && showAIAssistant && (
-          <AIAssistant story={story} />
-        )}
         
         {story.is_public && (
           <CommentSection storyId={story.id} />
